@@ -24,6 +24,18 @@ Manually converting every coordinate is tedious and error-prone. This plugin doe
 
 The plugin exports the selected node as SVG, then transforms all path coordinates from Figma's 24-scale to Google's 960-scale system with the correct viewBox, fill attributes, and negative Y offset. Multiple paths are merged into a single `<path>` element, and `fill-rule="evenodd"` is preserved when present.
 
+## CLI Alternative
+
+A standalone Python script is included for terminal-based conversion (no dependencies required):
+
+```bash
+# Print to stdout
+python3 convert_to_material.py input.svg
+
+# Write to file
+python3 convert_to_material.py input.svg output.svg
+```
+
 ## Development
 
 ```bash
