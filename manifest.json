@@ -1,0 +1,11 @@
+{
+  "name": "Material Symbol Converter",
+  "id": "material-symbol-converter-7291",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

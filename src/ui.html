@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    color: #333;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100vh;
+  }
+  h2 { font-size: 14px; font-weight: 600; }
+  .desc { color: #666; line-height: 1.5; }
+  button {
+    background: #18A0FB;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+  }
+  button:hover { background: #0d8de5; }
+  .output {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .output label { font-weight: 600; font-size: 11px; color: #666; text-transform: uppercase; }
+  textarea {
+    flex: 1;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 11px;
+    resize: none;
+    background: #f5f5f5;
+    color: #333;
+  }
+  .status {
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .status.error { background: #fde8e8; color: #c53030; }
+  .status.success { background: #e6f7ed; color: #1a7f37; }
+  .actions { display: flex; gap: 8px; }
+  .actions button { flex: 1; }
+  .actions button.secondary {
+    background: #f0f0f0;
+    color: #333;
+  }
+  .actions button.secondary:hover { background: #e0e0e0; }
+</style>
+</head>
+<body>
+  <h2>Material Symbol Converter</h2>
+  <p class="desc">Select an icon frame and convert it to Google Material Symbols SVG format.</p>
+
+  <div class="actions">
+    <button id="convert">Convert Selection</button>
+  </div>
+
+  <div id="status-container"></div>
+
+  <div class="output">
+    <label>Output SVG</label>
+    <textarea id="result" readonly placeholder="Converted SVG will appear here..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button id="download" disabled>Download .svg</button>
+    <button id="copy" class="secondary" disabled>Copy</button>
+  </div>
+
+  <script>
+    const resultEl = document.getElementById('result');
+    const statusEl = document.getElementById('status-container');
+    const copyBtn = document.getElementById('copy');
+    const downloadBtn = document.getElementById('download');
+    const convertBtn = document.getElementById('convert');
+    let currentName = 'icon';
+
+    convertBtn.onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'convert' } }, '*');
+    };
+
+    copyBtn.onclick = () => {
+      resultEl.select();
+      document.execCommand('copy');
+      showStatus('Copied to clipboard!', 'success');
+    };
+
+    downloadBtn.onclick = () => {
+      const blob = new Blob([resultEl.value], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentName + '.svg';
+      a.click();
+      URL.revokeObjectURL(url);
+      showStatus('Downloaded ' + currentName + '.svg', 'success');
+    };
+
+    function showStatus(msg, type) {
+      statusEl.innerHTML = '<div class="status ' + type + '">' + msg + '</div>';
+      if (type === 'success') {
+        setTimeout(() => { statusEl.innerHTML = ''; }, 2000);
+      }
+    }
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'result') {
+        resultEl.value = msg.svg;
+        currentName = msg.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+        copyBtn.disabled = false;
+        downloadBtn.disabled = false;
+        showStatus('Converted "' + msg.name + '"', 'success');
+      } else if (msg.type === 'error') {
+        resultEl.value = '';
+        copyBtn.disabled = true;
+        downloadBtn.disabled = true;
+        showStatus(msg.message, 'error');
+      }
+    };
+  </script>
+</body>
+</html>
